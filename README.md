@@ -1,128 +1,104 @@
 # Zewbie Admin Portal
 
-Admin management portal for the Zewbie platform. Built with React, Vite, TypeScript, and TailwindCSS.
+Internal **administration** UI for the Zewbie platform: **React 19**, **Vite**, **TypeScript**, and **TailwindCSS v4**. Operators manage users, retailers, catalog moderation, orders, disputes, finances, and platform settings.
 
-## Tech Stack
+**Live:** [https://admin.zewbie.com](https://admin.zewbie.com)
 
-- **React 19** with TypeScript
-- **Vite** — dev server on port 5174
-- **React Router v7** — client-side routing with nested layouts
-- **TailwindCSS v4** — utility-first styling via Vite plugin
-- **Axios** — API client (`src/lib/api.ts`) with auth interceptors
-- **Zustand** — state management (configured, not yet used)
-- **TanStack React Query** — server-state management (configured, not yet used)
-- **Lucide React** — icon library
+## Quick start
 
-## Project Structure
-
-```
-src/
-├── App.tsx                   # Router with all routes
-├── main.tsx                  # Entry point
-├── index.css                 # Tailwind import
-├── lib/
-│   └── api.ts                # Axios instance (base URL from VITE_API_URL)
-├── layouts/
-│   ├── AdminLayout.tsx       # Sidebar + content area (authenticated routes)
-│   └── AuthLayout.tsx        # Centered card layout (auth routes)
-└── pages/
-    ├── Dashboard.tsx          # /dashboard — main overview
-    ├── ApiTestPanel.tsx       # /api-test — API connectivity tester
-    ├── auth/
-    │   ├── Login.tsx          # /auth/login
-    │   ├── ForgotPassword.tsx # /auth/forgot-password
-    │   └── ResetPassword.tsx  # /auth/reset-password/:token
-    ├── users/
-    │   ├── UserList.tsx       # /users
-    │   └── UserDetail.tsx     # /users/:id
-    ├── retailers/
-    │   ├── RetailerList.tsx   # /retailers
-    │   ├── RetailerDetail.tsx # /retailers/:id
-    │   └── RetailerApprovals.tsx # /retailers/approvals
-    ├── catalog/
-    │   ├── ProductList.tsx    # /catalog/products
-    │   ├── ProductDetail.tsx  # /catalog/products/:id
-    │   ├── ProductApprovals.tsx # /catalog/products/approvals
-    │   ├── Categories.tsx     # /catalog/categories
-    │   ├── CategoryDetail.tsx # /catalog/categories/:id
-    │   └── Attributes.tsx     # /catalog/attributes
-    ├── orders/
-    │   ├── OrderList.tsx      # /orders
-    │   └── OrderDetail.tsx    # /orders/:id
-    ├── disputes/
-    │   ├── DisputeList.tsx    # /disputes
-    │   └── DisputeDetail.tsx  # /disputes/:id
-    ├── finances/
-    │   ├── FinanceOverview.tsx # /finances
-    │   ├── Transactions.tsx   # /finances/transactions
-    │   ├── UserPayouts.tsx    # /finances/payouts/users
-    │   └── RetailerPayouts.tsx # /finances/payouts/retailers
-    └── settings/
-        ├── Settings.tsx       # /settings
-        └── AuditLog.tsx       # /settings/audit-log
-```
-
-## Routes (30 total)
-
-| Section    | Route                          | Page               |
-|------------|--------------------------------|--------------------|
-| Auth       | /auth/login                    | Login              |
-| Auth       | /auth/forgot-password          | ForgotPassword     |
-| Auth       | /auth/reset-password/:token    | ResetPassword      |
-| Dashboard  | /dashboard                     | Dashboard          |
-| Users      | /users                         | UserList           |
-| Users      | /users/:id                     | UserDetail         |
-| Retailers  | /retailers                     | RetailerList       |
-| Retailers  | /retailers/:id                 | RetailerDetail     |
-| Retailers  | /retailers/approvals           | RetailerApprovals  |
-| Catalog    | /catalog/products              | ProductList        |
-| Catalog    | /catalog/products/:id          | ProductDetail      |
-| Catalog    | /catalog/products/approvals    | ProductApprovals   |
-| Catalog    | /catalog/categories            | Categories         |
-| Catalog    | /catalog/categories/:id        | CategoryDetail     |
-| Catalog    | /catalog/attributes            | Attributes         |
-| Orders     | /orders                        | OrderList          |
-| Orders     | /orders/:id                    | OrderDetail        |
-| Disputes   | /disputes                      | DisputeList        |
-| Disputes   | /disputes/:id                  | DisputeDetail      |
-| Finances   | /finances                      | FinanceOverview    |
-| Finances   | /finances/transactions         | Transactions       |
-| Finances   | /finances/payouts/users        | UserPayouts        |
-| Finances   | /finances/payouts/retailers    | RetailerPayouts    |
-| Settings   | /settings                      | Settings           |
-| Settings   | /settings/audit-log            | AuditLog           |
-| API Test   | /api-test                      | ApiTestPanel       |
-| Redirect   | /                              | → /dashboard       |
-| Redirect   | *                              | → /dashboard       |
-
-## Getting Started
-
-```bash
-# Install dependencies
+```powershell
+git clone https://github.com/zewbie/zewbie-admin.git
+cd zewbie-admin
 npm install
-
-# Copy env file and set API URL
-cp .env.example .env
-
-# Start dev server (port 5174)
+copy .env.example .env
 npm run dev
 ```
 
-## Environment Variables
+The dev server runs at **`http://localhost:5174`** (see `vite.config.ts`).
 
-| Variable       | Default                  | Description          |
-|----------------|--------------------------|----------------------|
-| VITE_API_URL   | http://localhost:3000     | Backend API base URL |
+Set `VITE_API_URL` in `.env` to your Zewbie API base URL (default in `.env.example`: `http://localhost:3000`).
 
-## API Client
+## Architecture
 
-`src/lib/api.ts` exports a pre-configured Axios instance that:
-- Reads `VITE_API_URL` for the base URL
-- Attaches `admin_token` from localStorage as a Bearer token
-- Redirects to `/auth/login` on 401 responses
+| Layer | Role |
+|-------|------|
+| **`App.tsx`** | Declares all routes and layout nesting (`AdminLayout`, `AuthLayout`). |
+| **`layouts/AdminLayout.tsx`** | Sidebar navigation and shell for authenticated admin pages. |
+| **`layouts/AuthLayout.tsx`** | Centered card layout for sign-in and password flows. |
+| **`lib/api.ts`** | Axios instance: `VITE_API_URL`, Bearer token from `localStorage` (`admin_token`), 401 → `/auth/login`. |
 
-## Sidebar Navigation
+Styling uses **TailwindCSS** via `@tailwindcss/vite`. Data fetching can use **TanStack Query** and **Zustand** as the app grows beyond placeholders.
 
-The `AdminLayout` sidebar groups links into collapsible sections:
-Dashboard, Users, Retailers, Catalog, Orders, Disputes, Finances, Settings, and API Tests.
-Active links are highlighted with indigo styling.
+## Route list (28 pages)
+
+Routes include **26** primary paths plus **root** and **catch-all** redirects to the dashboard.
+
+| Section | Path | Page |
+|---------|------|------|
+| Auth | `/auth/login` | Login |
+| Auth | `/auth/forgot-password` | Forgot password |
+| Auth | `/auth/reset-password/:token` | Reset password |
+| Dashboard | `/dashboard` | Dashboard |
+| Users | `/users` | User list |
+| Users | `/users/:id` | User detail |
+| Retailers | `/retailers` | Retailer list |
+| Retailers | `/retailers/approvals` | Retailer approvals |
+| Retailers | `/retailers/:id` | Retailer detail |
+| Catalog | `/catalog/products` | Product list |
+| Catalog | `/catalog/products/approvals` | Product approvals |
+| Catalog | `/catalog/products/:id` | Product detail |
+| Catalog | `/catalog/categories` | Categories |
+| Catalog | `/catalog/categories/:id` | Category detail |
+| Catalog | `/catalog/attributes` | Attributes |
+| Orders | `/orders` | Order list |
+| Orders | `/orders/:id` | Order detail |
+| Disputes | `/disputes` | Dispute list |
+| Disputes | `/disputes/:id` | Dispute detail |
+| Finances | `/finances` | Finance overview |
+| Finances | `/finances/transactions` | Transactions |
+| Finances | `/finances/payouts/users` | User payouts |
+| Finances | `/finances/payouts/retailers` | Retailer payouts |
+| Settings | `/settings` | Settings |
+| Settings | `/settings/audit-log` | Audit log |
+| Dev | `/api-test` | API test panel |
+| Redirect | `/` | → `/dashboard` |
+| Redirect | `*` | → `/dashboard` |
+
+## Environment variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Zewbie Universal API base URL | `http://localhost:3000` |
+
+## Project structure
+
+```text
+src/
+├── App.tsx
+├── main.tsx
+├── lib/api.ts
+├── layouts/
+│   ├── AdminLayout.tsx
+│   └── AuthLayout.tsx
+└── pages/
+    ├── Dashboard.tsx
+    ├── ApiTestPanel.tsx
+    ├── auth/
+    ├── users/
+    ├── retailers/
+    ├── catalog/
+    ├── orders/
+    ├── disputes/
+    ├── finances/
+    └── settings/
+```
+
+## Related repositories
+
+- **zewbie-api** — NestJS backend and `/api/docs` Swagger.
+- **zewbie-app**, **zewbie-retailer** — Creator and retailer portals.
+- **zewbie-infra** — Local Docker stack and AWS Terraform.
+
+## License
+
+Private (see repository settings).
