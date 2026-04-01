@@ -7,7 +7,7 @@ Internal **administration** UI for the Zewbie platform: **React 19**, **Vite**, 
 ## Quick start
 
 ```powershell
-git clone https://github.com/zewbie/zewbie-admin.git
+git clone <repository-url>
 cd zewbie-admin
 npm install
 copy .env.example .env
