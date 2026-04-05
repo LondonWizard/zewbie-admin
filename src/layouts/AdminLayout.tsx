@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
@@ -11,6 +11,8 @@ import {
   FlaskConical,
   LogOut,
   ChevronDown,
+  Menu,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
@@ -19,6 +21,7 @@ interface NavSection {
   label: string
   icon: React.ReactNode
   links: { to: string; label: string }[]
+  devOnly?: boolean
 }
 
 const navigation: NavSection[] = [
@@ -82,10 +85,11 @@ const navigation: NavSection[] = [
     label: 'API Tests',
     icon: <FlaskConical size={18} />,
     links: [{ to: '/api-test', label: 'Test Panel' }],
+    devOnly: true,
   },
 ]
 
-function NavSectionItem({ section }: { section: NavSection }) {
+function NavSectionItem({ section, onNav }: { section: NavSection; onNav?: () => void }) {
   const [open, setOpen] = useState(true)
   const hasMultipleLinks = section.links.length > 1
 
@@ -93,6 +97,7 @@ function NavSectionItem({ section }: { section: NavSection }) {
     return (
       <NavLink
         to={section.links[0].to}
+        onClick={onNav}
         className={({ isActive }) =>
           clsx(
             'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
@@ -129,6 +134,7 @@ function NavSectionItem({ section }: { section: NavSection }) {
             <NavLink
               key={link.to}
               to={link.to}
+              onClick={onNav}
               className={({ isActive }) =>
                 clsx(
                   'block px-3 py-1.5 rounded-md text-sm transition-colors',
@@ -148,31 +154,96 @@ function NavSectionItem({ section }: { section: NavSection }) {
 }
 
 export default function AdminLayout() {
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
+  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  function handleSignOut() {
+    localStorage.removeItem('admin_token')
+    navigate('/auth/login')
+  }
+
+  const filteredNav = navigation.filter((s) => !s.devOnly || import.meta.env.DEV)
+
+  const sidebarContent = (
+    <>
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
           <h1 className="text-lg font-bold text-indigo-700">Zewbie Admin</h1>
           <p className="text-xs text-gray-400">Management Portal</p>
         </div>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="md:hidden p-1 rounded hover:bg-gray-100"
+          aria-label="Close sidebar"
+        >
+          <X size={20} className="text-gray-500" />
+        </button>
+      </div>
 
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {navigation.map((section) => (
-            <NavSectionItem key={section.label} section={section} />
-          ))}
-        </nav>
+      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+        {filteredNav.map((section) => (
+          <NavSectionItem
+            key={section.label}
+            section={section}
+            onNav={() => setSidebarOpen(false)}
+          />
+        ))}
+      </nav>
 
-        <div className="p-3 border-t border-gray-200">
-          <button className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors">
-            <LogOut size={18} />
-            Sign Out
-          </button>
-        </div>
+      <div className="p-3 border-t border-gray-200">
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
+      </div>
+    </>
+  )
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col">
+        {sidebarContent}
       </aside>
 
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      {/* Mobile sidebar */}
+      <aside
+        className={clsx(
+          'fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform md:hidden',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
+        {sidebarContent}
+      </aside>
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile header */}
+        <div className="md:hidden flex items-center gap-3 p-3 bg-white border-b border-gray-200">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-1.5 rounded-lg hover:bg-gray-100"
+            aria-label="Open sidebar"
+          >
+            <Menu size={20} />
+          </button>
+          <h1 className="text-sm font-bold text-indigo-700">Zewbie Admin</h1>
+        </div>
+
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

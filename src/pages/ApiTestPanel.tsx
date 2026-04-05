@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import api from '../lib/api'
 
 interface TestResult {
@@ -67,6 +67,10 @@ export default function ApiTestPanel() {
   const [serviceHealth, setServiceHealth] = useState<Record<string, 'up' | 'down' | 'unknown'>>(
     Object.fromEntries(SERVICE_CHECKS.map((s) => [s, 'unknown' as const])),
   )
+
+  useEffect(() => {
+    document.title = 'Admin - API Test Panel'
+  }, [])
 
   async function runTest(method: string, path: string) {
     const key = `${method} ${path}`
@@ -214,9 +218,9 @@ export default function ApiTestPanel() {
           </div>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {results.map((r, i) => (
+            {results.map((r) => (
               <div
-                key={i}
+                key={r.timestamp}
                 className={`p-3 rounded-lg border text-sm ${
                   r.error ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
                 }`}
